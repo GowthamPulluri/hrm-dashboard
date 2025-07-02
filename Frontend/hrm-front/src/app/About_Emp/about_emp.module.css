@@ -1,0 +1,94 @@
+.fullImageSection {
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: background-position 0.3s ease-out;
+}
+
+.navDots {
+  position: fixed;
+  top: 50%;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(-50%);
+  z-index: 50;
+}
+
+.navDot {
+  width: 12px;
+  height: 12px;
+  background-color: white;
+  border-radius: 50%;
+  margin: 8px 0;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.navDot:hover, .navDot.active {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.contactStandalone {
+  background: #111;
+  color: white;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.backToTopIconBtn {
+  margin-top: 2rem;
+  background: #333;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  font-size: 1.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.backToTopIconBtn:hover {
+  background: #555;
+}
+
+/* Add these to your about.module.css */
+.aspectRatioBox {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* For 16:9 aspect ratio (9 / 16 * 100) */
+  /* Or 75% for 4:3, or 66.66% for 3:2, etc. */
+}
+
+.aspectRatioBox img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Use cover to fill and crop if needed */
+  object-position: center; /* Center the image within the box */
+}
+
+/* frontend/styles/about.module.css */
+
+.aboutImage {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  /* Removed border-radius from here to make it fully square if the parent div is square */
+  display: block;
+  border: none; /* Add this line to explicitly remove any border */
+}
+
+/* If the border is on the aspectRatioBox div */
+.aspectRatioBox {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  border: none; /* Add this line if the border is on this div */
+  border-radius: 0; /* Remove border-radius if you want sharp corners */
+}

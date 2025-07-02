@@ -1,0 +1,231 @@
+.container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f7fb;
+}
+
+.title {
+  text-align: center;
+  font-size: 2.5rem;
+  color: #002244;
+  margin-bottom: 30px;
+  animation: fadeIn ease 1s;
+}
+
+.controls {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  animation: fadeIn ease 1.2s;
+}
+
+.searchBox,
+.filterSelect,
+.datePicker {
+  padding: 10px 14px;
+  font-size: 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fff;
+  min-width: 200px;
+  color: #222;
+}
+
+.filterSelect option {
+  color: #222;
+  background-color: #fff;
+}
+
+.generateBtn {
+  background-color: #28a745;
+  color: white;
+  padding: 10px 18px;
+  font-size: 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  min-width: 140px;
+}
+
+.generateBtn:hover {
+  background-color: #218838;
+}
+
+.generateBtn:disabled {
+  background-color: #94d3a2;
+  cursor: not-allowed;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  font-size: 15px;
+  color: #222;
+  animation: fadeIn ease 1.5s;
+}
+
+.table th,
+.table td {
+  padding: 14px 20px;
+  text-align: left;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.table th {
+  background-color: #002a4a;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.table tr:nth-child(even) {
+  background-color: #f6f9fc;
+}
+
+.table tr:hover {
+  background-color: #eef3f8;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.viewBtn {
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+  min-width: 100px;
+  margin-right: 8px;
+}
+
+.viewBtn:hover {
+  background-color: #004d99;
+}
+
+.viewBtn:disabled {
+  background-color: #a2c6e6;
+  cursor: not-allowed;
+}
+
+.paid {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.pending {
+  color: #d9534f;
+  font-weight: bold;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  padding: 20px;
+}
+
+.modalContent {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  animation: fadeInUp 0.4s ease forwards;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modalContent h2 {
+  margin-bottom: 16px;
+  color: #003366;
+  font-size: 1.4rem;
+}
+
+.modalContent p {
+  margin: 10px 0;
+  font-size: 15px;
+  color: #222;
+}
+
+.closeBtn {
+  margin-top: 10px;
+  background-color: #003366;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  min-width: 100px;
+}
+
+.closeBtn:hover {
+  background-color: #002244;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background-color: #28a745;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  animation: fadeInUp 0.3s ease;
+  z-index: 1000;
+}
+
+.generated {
+  background-color: #d4edda !important;
+  animation: flashRow 2s ease-in-out;
+}
+
+@keyframes flashRow {
+  0% { background-color: #d4edda; }
+  50% { background-color: #f4f7fb; }
+  100% { background-color: inherit; }
+}
