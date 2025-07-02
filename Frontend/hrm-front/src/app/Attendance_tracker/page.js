@@ -61,7 +61,7 @@ export default function Attendance_tracker() {
 
   const fetchAttendance = async (dateStr) => {
     try {
-      const response = await fetch(`http://localhost:3000/emp_attendance/${dateStr}`);
+      const response = await fetch(`https://hrm-dashboard-xjqw.onrender.com/emp_attendance/${dateStr}`);
       const data = await response.json();
       setAttendanceData(data || []);
     } catch (err) {

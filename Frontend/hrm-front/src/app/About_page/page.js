@@ -80,7 +80,7 @@ export const LogoIcon = () => (
 );
 
 const Dashboard = () => {
-  const sectionImages = Array.from({ length: 10 }, (_, i) => `/bg/section${i + 1}.jpg`);
+  const sectionImages = Array.from({ length: 10 }, (_, i) => `/bg/section_${i + 1}.jpg`);
 
   return (
     <div className="relative flex flex-1 flex-col overflow-y-auto p-4">

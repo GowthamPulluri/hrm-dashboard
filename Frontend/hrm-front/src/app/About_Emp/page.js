@@ -89,16 +89,16 @@ export const LogoIcon = () => (
 );
 
 const Dashboard = () => {
-  const sectionImages = Array.from({ length: 10 }, (_, i) => `/bg/section${i + 1}.jpg`);
+  const sectionImages = Array.from({ length: 10 }, (_, i) => `/bg/section_${i + 1}.jpg`);
 
   return (
     <div className="relative flex flex-1 flex-col overflow-y-auto p-4">
       {/* <h1 className="text-3xl font-bold text-center my-8 dark:text-white">About GVK Innovations Pvt. Ltd.</h1> */}
 
 
-{sectionImages.map((Image, index) => (
+{sectionImages.map((img, index) => (
   <div key={index} className={`${aboutStyles.aspectRatioBox} mb-8 shadow-lg`}> {/* Removed rounded-lg */}
-    <Image
+    <img
         src={`/bg/section_${index + 1}.jpg`} // Directly reference from the public directory
         alt={`Section ${index + 1} Background`}
         width={1920}

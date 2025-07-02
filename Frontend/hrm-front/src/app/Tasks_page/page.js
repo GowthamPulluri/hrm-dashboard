@@ -64,7 +64,7 @@ export default function Tasks_page(){
       setEmployee(emp);
 
       // Fetch tasks for logged-in empId
-      axios.get(`http://localhost:3000/task_assigned/${emp.empId}`)
+      axios.get(`https://hrm-dashboard-xjqw.onrender.com/task_assigned/${emp.empId}`)
         .then(res => setTasks(res.data))
         .catch(err => {
           console.error("Failed to fetch tasks for employee", emp.empId, err);
@@ -95,7 +95,7 @@ export default function Tasks_page(){
     try {
       // Send the logout request to your backend API
       // Ensure the URL matches your server's address and port
-      const response = await axios.put('http://localhost:3000/emp_attendance/logout', {
+      const response = await axios.put('https://hrm-dashboard-xjqw.onrender.com/emp_attendance/logout', {
         empId: employee.empId,
         date: formattedDate,
         logoutTime: logoutTime,

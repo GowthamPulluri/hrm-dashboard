@@ -332,7 +332,7 @@ export default function Performance_monitor_page() {
       setIsLoadingTasks(true);
       setErrorTasks(null);
       try {
-        const response = await fetch("http://localhost:3000/task_assigned");
+        const response = await fetch("https://hrm-dashboard-xjqw.onrender.com/task_assigned");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -354,7 +354,7 @@ export default function Performance_monitor_page() {
       setIsLoadingAllEmployees(true);
       setErrorAllEmployees(null);
       try {
-        const response = await fetch("http://localhost:3000/employee_data"); // Assuming this endpoint returns all employees
+        const response = await fetch("https://hrm-dashboard-xjqw.onrender.com/employee_data"); // Assuming this endpoint returns all employees
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -385,7 +385,7 @@ export default function Performance_monitor_page() {
         setIsLoadingEmployeeInfo(true);
         setErrorEmployeeInfo(null);
         try {
-          const response = await fetch(`http://localhost:3000/employee_data/empId/${lowerCaseSearchId}`);
+          const response = await fetch(`https://hrm-dashboard-xjqw.onrender.com/employee_data/empId/${lowerCaseSearchId}`);
           if (!response.ok) {
             if (response.status === 404) {
                 setEmployeeInfo(null);
@@ -491,7 +491,7 @@ export default function Performance_monitor_page() {
     );
 
     try {
-      const response = await fetch(`http://localhost:3000/task_assigned/${taskId}`, {
+      const response = await fetch(`https://hrm-dashboard-xjqw.onrender.com/task_assigned/${taskId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

@@ -87,7 +87,7 @@ export default function Employee_database() {
   useEffect(() => {
     const fetchAllEmployees = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/employee_data');
+        const res = await axios.get('https://hrm-dashboard-xjqw.onrender.com/employee_data');
         setEmployees(res.data);
         setFilteredEmployees(res.data);
       } catch (error) {

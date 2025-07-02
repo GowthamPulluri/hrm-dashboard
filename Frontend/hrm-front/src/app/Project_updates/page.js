@@ -91,7 +91,7 @@ export default function Project_updates() {
       setIsLoadingUpdates(true);
       setErrorUpdates(null);
       try {
-        const response = await fetch("http://localhost:3000/project_updates"); // Your backend endpoint
+        const response = await fetch("https://hrm-dashboard-xjqw.onrender.com/project_updates"); // Your backend endpoint
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -137,7 +137,7 @@ export default function Project_updates() {
     try {
       // Send the logout request to your backend API
       // Ensure the URL matches your server's address and port
-      const response = await axios.put('http://localhost:3000/emp_attendance/logout', {
+      const response = await axios.put('https://hrm-dashboard-xjqw.onrender.com/emp_attendance/logout', {
         empId: employee.empId,
         date: formattedDate,
         logoutTime: logoutTime,

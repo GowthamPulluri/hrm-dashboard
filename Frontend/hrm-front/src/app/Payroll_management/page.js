@@ -71,7 +71,7 @@ export default function Payroll_management() {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await axios.get('http://localhost:3000/payroll_data');
+        const response = await axios.get('https://hrm-dashboard-xjqw.onrender.com/payroll_data');
         setData(response.data);
       } catch (err) {
         console.error("Error fetching payroll data:", err);
@@ -121,7 +121,7 @@ export default function Payroll_management() {
 
     try {
       // Corrected: Use empId in the API path
-      const response = await axios.patch(`http://localhost:3000/payroll_data/${empToUpdate.empId}`, { status: 'Paid' });
+      const response = await axios.patch(`https://hrm-dashboard-xjqw.onrender.com/payroll_data/${empToUpdate.empId}`, { status: 'Paid' });
       setToastMessage(`✅ Payroll generated for ${empToUpdate.empId}`);
       setPayrollId('');
       // If backend sends updated data, you might want to use response.data to update state

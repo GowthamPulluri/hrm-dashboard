@@ -91,7 +91,7 @@ function AssignTaskContent() {
         if (employeeId) {
             const fetchEmployeeName = async () => {
                 try {
-                    const response = await fetch(`http://localhost:3000/employee_data/empId/${employeeId}`);
+                    const response = await fetch(`https://hrm-dashboard-xjqw.onrender.com/employee_data/empId/${employeeId}`);
                     if (response.ok) {
                         const data = await response.json();
                         setEmployeeName(data.name || 'Unknown Employee');
@@ -137,7 +137,7 @@ function AssignTaskContent() {
 
         try {
             // Use the backend endpoint: POST /task_assigned/:empId
-            const response = await fetch(`http://localhost:3000/task_assigned/${employeeId}`, {
+            const response = await fetch(`https://hrm-dashboard-xjqw.onrender.com/task_assigned/${employeeId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

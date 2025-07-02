@@ -151,7 +151,7 @@ export default function Employee_dashboard() {
         setErrorTasks(null);
         try {
           // Fetch tasks for the specific employee
-          const response = await fetch(`http://localhost:3000/task_assigned/${empId}`);
+          const response = await fetch(`https://hrm-dashboard-xjqw.onrender.com/task_assigned/${empId}`);
           if (!response.ok) {
             // Handle 404 or other errors
             if (response.status === 404) {
@@ -190,7 +190,7 @@ export default function Employee_dashboard() {
       setIsLoadingAnnouncements(true);
       setErrorAnnouncements(null);
       try {
-        const response = await fetch("http://localhost:3000/project_updates");
+        const response = await fetch("https://hrm-dashboard-xjqw.onrender.com/project_updates");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -237,7 +237,7 @@ export default function Employee_dashboard() {
     const logoutTime = today.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 
     try {
-      const response = await axios.put('http://localhost:3000/emp_attendance/logout', {
+      const response = await axios.put('https://hrm-dashboard-xjqw.onrender.com/emp_attendance/logout', {
         empId: employee.empId,
         date: formattedDate,
         logoutTime: logoutTime,

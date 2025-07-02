@@ -20,7 +20,7 @@ export default function Home() {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://localhost:3000/employee_data');
+      const response = await fetch('https://hrm-dashboard-xjqw.onrender.com/employee_data');
       const employees = await response.json();
 
       const matched = employees.find(emp => emp.empId === empId && emp.pass === pass);
@@ -49,7 +49,7 @@ export default function Home() {
         login: loginTime
       };
 
-      await fetch('http://localhost:3000/emp_attendance', {
+      await fetch('https://hrm-dashboard-xjqw.onrender.com/emp_attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(attendanceEntry)
@@ -67,7 +67,7 @@ export default function Home() {
 
   const handleManLogin = async () => {
     try {
-      const response = await fetch('http://localhost:3000/management_data');
+      const response = await fetch('https://hrm-dashboard-xjqw.onrender.com/management_data');
       const managers = await response.json(); // Renamed to 'managers' for clarity
 
       const matched = managers.find(man => man.manId === manId && man.password === managerPassword); // Use managerPassword
