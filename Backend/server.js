@@ -137,6 +137,21 @@ app.put('/employee_data/:empId', async (req, res) => {
   }
 });
 
+app.delete('/employee_data/:empId', async (req, res) => {
+    try {
+        const empIdToDelete = req.params.empId;
+        const result = await Employee.deleteOne({ empId: empIdToDelete }); // Use deleteOne for a single match
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: "Employee not found for deletion." });
+        }
+        res.status(200).json({ message: "Employee deleted successfully.", deletedEmpId: empIdToDelete });
+    } catch (error) {
+        console.error('Error deleting employee:', error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
 app.put('/emp_attendance/logout', async (req, res) => {
   try {
     const { empId, date, logoutTime } = req.body;
