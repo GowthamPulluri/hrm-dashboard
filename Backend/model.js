@@ -65,7 +65,7 @@ const attendanceSchema = new mongoose.Schema({
   },
   logout: {
     type: String,
-    required: true
+    required: null
   }
 }, {
   timestamps: true
