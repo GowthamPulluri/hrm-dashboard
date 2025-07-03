@@ -164,12 +164,12 @@ app.put('/emp_attendance/logout', async (req, res) => {
   }
 });
 
-app.get('/emp_attendance/:Date/:empID', async (req, res) => {
+app.get('/emp_attendance/:Date/:empId', async (req, res) => {
   try {
-    const empIDParam = req.params.empID;
+    const empIdParam = req.params.empId;
     const dateParam = req.params.Date;
     const matchedRecords = await Attendance.find({
-      empId: { $regex: new RegExp(`^${empIDParam}$`, 'i') },
+      empId: { $regex: new RegExp(`^${empIdParam}$`, 'i') },
       Date: dateParam
     });
     if (matchedRecords.length > 0) {
@@ -292,9 +292,9 @@ app.get('/management_data', async (req, res) => {
   }
 });
 
-app.get('/task_assigned/:empID', async (req, res) => {
+app.get('/task_assigned/:empId', async (req, res) => {
   try {
-    const emp_ID = req.params.empID;
+    const emp_ID = req.params.empId;
     const filtered_emp_tasks = await Task.find({
       empId: { $regex: new RegExp(`^${emp_ID}$`, 'i') }
     });
