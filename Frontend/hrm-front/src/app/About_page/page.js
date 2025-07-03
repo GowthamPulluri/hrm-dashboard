@@ -100,11 +100,11 @@ const Dashboard = () => {
       <section className={`${aboutStyles.contactStandalone} mt-8`}>
         <div className={aboutStyles.contactContent}>
           <h2>Contact Us</h2>
-          <p><strong>Landline:</strong> +91 40 1234 5678</p>
-          <p><strong>Email:</strong> <a href="mailto:contact@gvkinno.com">contact@gvkinno.com</a></p>
+          {/* <p><strong>Contact:</strong> +91 40 1234 5678</p> */}
+          <p><strong>Email:</strong> <a href="mailto:employement.gowtham@gmail.com">employement.gowtham@gmail.com</a></p>
           <p>
-            <a href="https://linkedin.com/company/gvkinno" target="_blank" rel="noopener noreferrer">LinkedIn</a> |{" "}
-            <a href="https://x.com/gvkinno" target="_blank" rel="noopener noreferrer">X (formerly Twitter)</a>
+            <a href="https://www.linkedin.com/in/pulluri-gowtham-585b472a4/" target="_blank" rel="noopener noreferrer">LinkedIn</a> |{" "}
+            <a href="https://github.com/GowthamPulluri" target="_blank" rel="noopener noreferrer">GitHub</a>
           </p>
           <p className={aboutStyles.copyright}>
             © {new Date().getFullYear()} Mahaveer Solutions Pvt. Ltd. | Excellence. Empowered.
