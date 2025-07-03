@@ -1,297 +1,446 @@
 const express = require("express");
-const axios = require("axios"); // Keeping axios, though not directly used in provided routes
+const axios = require("axios");
 const cors = require("cors");
+const mongoose = require("mongoose");
 require("dotenv").config();
 
 const app = express();
 const PORT = 3000;
 
-// --- Middleware ---
-// 1. CORS middleware: Allows cross-origin requests. Must be early.
+mongoose.connect('mongodb+srv://nikhilpulluri7810:1234@nikhilpulluri.g6f9o.mongodb.net/hrm-dashboard?retryWrites=true&w=majority', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => {
+  console.log('Connected to MongoDB successfully!');
+});
+
+const { Employee, Attendance, Management, Payroll, Task } = require('./model');
+
 app.use(cors());
-// 2. JSON body parser: Parses incoming request bodies with JSON payloads.
-//    ESSENTIAL and MUST be placed BEFORE any routes that need to read req.body.
 app.use(express.json());
-// 3. Static files server: Serves static assets from the 'public' directory.
 app.use(express.static("public"));
 
-
-// --- Data Imports ---
-// IMPORTANT: Ensure these files export mutable arrays (e.g., via module.exports = [...])
-// If they export a 'const' array, in-memory modifications will fail.
-let employee_data = require('./employee_data');
-let emp_attendance = require('./emp_attendance');
-let management_data = require('./management_data');
-let task_assigned = require('./task_assigned');
-
-
-// --- Routes ---
-
-// Employee Data Routes
-// Route order is crucial: more specific routes first!
-
-// 1. Get employee data by specific empId (MOST SPECIFIC GET for /employee_data)
-app.get('/employee_data/empId/:empId', (req, res) => {
-  const emp_ID = req.params.empId.toLowerCase();
-  const searched_emp_ID = employee_data.find(emp => emp.empId.toLowerCase() === emp_ID);
-
-  if (searched_emp_ID) {
-    res.json(searched_emp_ID);
-  } else {
-    res.status(404).json({ message: "Employee not found" });
+app.get('/employee_data/empId/:empId', async (req, res) => {
+  try {
+    const emp_ID = req.params.empId;
+    const searched_emp_ID = await Employee.findOne({ empId: { $regex: new RegExp(`^${emp_ID}$`, 'i') } });
+    if (searched_emp_ID) {
+      const employeeData = searched_emp_ID.toObject();
+      delete employeeData._id;
+      delete employeeData.__v;
+      delete employeeData.createdAt;
+      delete employeeData.updatedAt;
+      res.json(employeeData);
+    } else {
+      res.status(404).json({ message: "Employee not found" });
+    }
+  } catch (error) {
+    console.error('Error fetching employee by ID:', error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// 2. Filter employee data based on role (More specific than general /employee_data)
-app.get('/employee_data/:role', (req, res) => {
-  const emp_role = req.params.role;
-  const filtered_emp_data = employee_data.filter(i => i.role.toLowerCase() === emp_role.toLowerCase());
-  if (filtered_emp_data.length > 0) {
-    res.json(filtered_emp_data);
-  } else {
-    res.status(404).json({ message: "No employees found for this role" });
+app.get('/employee_data/:role', async (req, res) => {
+  try {
+    const emp_role = req.params.role;
+    const filtered_emp_data = await Employee.find({ role: { $regex: new RegExp(`^${emp_role}$`, 'i') } });
+    if (filtered_emp_data.length > 0) {
+      const cleanedData = filtered_emp_data.map(emp => {
+        const empData = emp.toObject();
+        delete empData._id;
+        delete empData.__v;
+        delete empData.createdAt;
+        delete empData.updatedAt;
+        return empData;
+      });
+      res.json(cleanedData);
+    } else {
+      res.status(404).json({ message: "No employees found for this role" });
+    }
+  } catch (error) {
+    console.error('Error fetching employees by role:', error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// 3. Get all employee data (LEAST SPECIFIC GET for /employee_data)
-app.get('/employee_data', (req, res) => {
-  res.json(employee_data);
+app.get('/employee_data', async (req, res) => {
+  try {
+    const employees = await Employee.find({});
+    const cleanedData = employees.map(emp => {
+      const empData = emp.toObject();
+      delete empData._id;
+      delete empData.__v;
+      delete empData.createdAt;
+      delete empData.updatedAt;
+      return empData;
+    });
+    res.json(cleanedData);
+  } catch (error) {
+    console.error('Error fetching all employees:', error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
-// 4. POST: Add a new employee
-app.post('/employee_data', (req, res) => {
-  console.log('Backend: Received POST request for /employee_data. Body:', req.body);
-  const newEmployee = req.body;
-
-  if (!newEmployee.empId || !newEmployee.name || !newEmployee.pass || !newEmployee.mailID || !newEmployee.role || !newEmployee.age) {
-    return res.status(400).json({ message: 'Missing required employee fields.' });
+app.post('/employee_data', async (req, res) => {
+  try {
+    const newEmployee = req.body;
+    if (!newEmployee.empId || !newEmployee.name || !newEmployee.pass || !newEmployee.mailID || !newEmployee.role || !newEmployee.age) {
+      return res.status(400).json({ message: 'Missing required employee fields.' });
+    }
+    const existingEmployee = await Employee.findOne({ empId: newEmployee.empId });
+    if (existingEmployee) {
+      return res.status(409).json({ message: 'Employee with this ID already exists.' });
+    }
+    const employee = new Employee(newEmployee);
+    await employee.save();
+    const employeeData = employee.toObject();
+    delete employeeData._id;
+    delete employeeData.__v;
+    delete employeeData.createdAt;
+    delete employeeData.updatedAt;
+    res.status(201).json({ message: 'Employee added successfully', employee: employeeData });
+  } catch (error) {
+    console.error('Error adding employee:', error);
+    res.status(500).json({ message: "Server error" });
   }
-
-  const existingEmployee = employee_data.find(emp => emp.empId === newEmployee.empId);
-  if (existingEmployee) {
-    return res.status(409).json({ message: 'Employee with this ID already exists.' });
-  }
-
-  employee_data.push(newEmployee);
-  console.log('Backend: New employee added:', newEmployee);
-  res.status(201).json({ message: 'Employee added successfully', employee: newEmployee });
 });
 
-// 5. PUT: Update an existing employee
-app.put('/employee_data/:empId', (req, res) => {
-  console.log(`Backend: Received PUT request for /employee_data/${req.params.empId}. Body:`, req.body);
-  const empIdToUpdate = req.params.empId;
-  const updatedEmployeeData = req.body;
-
-  const employeeIndex = employee_data.findIndex(emp => emp.empId === empIdToUpdate);
-
-  if (employeeIndex !== -1) {
+app.put('/employee_data/:empId', async (req, res) => {
+  try {
+    const empIdToUpdate = req.params.empId;
+    const updatedEmployeeData = req.body;
     if (updatedEmployeeData.empId && updatedEmployeeData.empId !== empIdToUpdate) {
       return res.status(400).json({ message: 'Employee ID cannot be changed.' });
     }
-
-    employee_data[employeeIndex] = { ...employee_data[employeeIndex], ...updatedEmployeeData, empId: empIdToUpdate };
-    console.log('Backend: Employee updated:', employee_data[employeeIndex]);
-    res.json({ message: 'Employee updated successfully', employee: employee_data[employeeIndex] });
-  } else {
-    res.status(404).json({ message: 'Employee not found for update.' });
-  }
-});
-
-app.put('/emp_attendance/logout', (req, res) => {
-    console.log('Backend: Received PUT request for /emp_attendance/logout. Body:', req.body);
-    const { empId, date, logoutTime } = req.body;
-
-    if (!empId || !date || !logoutTime) {
-        return res.status(400).json({ message: 'Missing required fields: empId, date, or logoutTime.' });
-    }
-
-    // Find the attendance record for the specific employee and date
-    const attendanceRecordIndex = emp_attendance.findIndex(
-        record => record.empId === empId && record.Date === date
+    const updatedEmployee = await Employee.findOneAndUpdate(
+      { empId: empIdToUpdate },
+      { ...updatedEmployeeData, empId: empIdToUpdate },
+      { new: true }
     );
-
-    if (attendanceRecordIndex !== -1) {
-        // Update the logout time
-        emp_attendance[attendanceRecordIndex].logout = logoutTime;
-        console.log('Backend: Attendance record updated successfully:', emp_attendance[attendanceRecordIndex]);
-        res.status(200).json({
-            message: 'Logout time updated successfully.',
-            updatedRecord: emp_attendance[attendanceRecordIndex]
-        });
+    if (updatedEmployee) {
+      const employeeData = updatedEmployee.toObject();
+      delete employeeData._id;
+      delete employeeData.__v;
+      delete employeeData.createdAt;
+      delete employeeData.updatedAt;
+      res.json({ message: 'Employee updated successfully', employee: employeeData });
     } else {
-        // If no matching record is found for the given empId and date
-        // This might happen if login wasn't recorded or date is mismatched
-        console.warn(`Backend: No attendance record found for empId: ${empId} on date: ${date} to update logout.`);
-        // Optionally, you might want to create a new record here if login was missed
-        // For now, we'll return a 404
-        res.status(404).json({ message: 'Attendance record not found for today. Ensure login was recorded.' });
+      res.status(404).json({ message: 'Employee not found for update.' });
     }
-});
-
-// Attendance Routes (ensure specific routes come before general ones)
-app.get('/emp_attendance/:Date/:empID', (req, res) => {
-  const empIDParam = req.params.empID.toLowerCase();
-  const dateParam = req.params.Date;
-
-  const matchedRecords = emp_attendance.filter(
-    emp => emp.empId.toLowerCase() === empIDParam && emp.Date === dateParam
-  );
-
-  if (matchedRecords.length > 0) {
-    res.json(matchedRecords);
-  } else {
-    res.status(404).json({ message: "No attendance found for the given date and employee ID" });
+  } catch (error) {
+    console.error('Error updating employee:', error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-app.get('/emp_attendance/:Date/:name', (req, res) => {
-  const DateQuery = req.params.Date;
-  const nameQuery = req.params.name.toLowerCase();
-
-  const entry = emp_attendance.find(
-    emp => emp.Date === DateQuery && emp.name.toLowerCase() === nameQuery
-  );
-
-  if (!entry) {
-    return res.status(404).json({ error: "No matching record found" });
-  }
-
-  res.json(entry);
-});
-
-app.get('/emp_attendance',(req,res)=>{
-    res.json(emp_attendance);
-});
-
-app.get('/emp_attendance/:Date',(req,res)=>{
-    const att_date =req.params.Date;
-    const filtered_emp_attendance=emp_attendance.filter(i=>i.Date==att_date);
-    res.json(filtered_emp_attendance);
-});
-
-app.post('/emp_attendance', (req, res) => {
-  const newEntry = req.body;
-
-  const exists = emp_attendance.find(e => e.empId === newEntry.empId && e.Date === newEntry.Date);
-  if (exists) {
-    return res.status(400).json({ message: "Attendance already marked for today." });
-  }
-
-  newEntry.logout = "";
-  emp_attendance.push(newEntry);
-
-  res.status(201).json({ message: "Attendance marked.", data: newEntry });
-});
-
-// Management Data Route
-app.get('/management_data', (req, res) => {
-  res.json(management_data);
-});
-
-
-// Task Assignment Routes (ensure specific routes come before general ones)
-app.get('/task_assigned/:empID', (req, res) => {
-  const emp_ID = req.params.empID.toLowerCase();
-
-  const filtered_emp_tasks = task_assigned.filter(task =>
-    task.empId.toLowerCase() === emp_ID
-  );
-
-  if (filtered_emp_tasks.length === 0) {
-    return res.status(404).json({ message: "No tasks found for this Employee ID" });
-  }
-
-  res.json(filtered_emp_tasks);
-});
-
-app.get('/task_assigned', (req, res) => {
-  res.json(task_assigned);
-});
-
-app.put('/task_assigned/:taskId', (req, res) => {
-  const { taskId } = req.params;
-  const { task, date, assignedTime, priority, description } = req.body;
-
-  const index = task_assigned.findIndex(t => t.taskId === taskId);
-
-  if (index === -1) {
-    return res.status(404).json({ message: 'Task not found' });
-  }
-
-  if (task) task_assigned[index].task = task;
-  if (date) task_assigned[index].date = date;
-  if (assignedTime) task_assigned[index].assignedTime = assignedTime;
-  if (priority) task_assigned[index].priority = priority;
-  if (description) task_assigned[index].description = description;
-
-  res.json({ message: 'Task updated successfully', updatedTask: task_assigned[index] });
-});
-
-app.delete('/task_assigned/:task', (req, res) => {
-  const taskName = req.params.task.toLowerCase();
-
-  const initialLength = task_assigned.length;
-  const remainingTasks = task_assigned.filter(
-    task => task.task.toLowerCase() !== taskName
-  );
-
-  if (remainingTasks.length === initialLength) {
-    return res.status(404).json({ message: "Task not found" });
-  }
-
-  task_assigned.length = 0; // Clear the original array
-  task_assigned.push(...remainingTasks); // Push filtered tasks back
-
-  res.json({ message: "Task(s) deleted successfully", deletedTask: taskName });
-});
-
-app.patch('/task_assigned/:taskId', (req, res) => {
-  const taskId = req.params.taskId;
-  const { status } = req.body;
-
-  const taskIndex = task_assigned.findIndex(task => task.taskId === taskId);
-
-  if (taskIndex !== -1) {
-    task_assigned[taskIndex] = { ...task_assigned[taskIndex], status: status };
-    res.json(task_assigned[taskIndex]);
-  } else {
-    res.status(404).json({ message: 'Task not found' });
+app.put('/emp_attendance/logout', async (req, res) => {
+  try {
+    const { empId, date, logoutTime } = req.body;
+    if (!empId || !date || !logoutTime) {
+      return res.status(400).json({ message: 'Missing required fields: empId, date, or logoutTime.' });
+    }
+    const updatedRecord = await Attendance.findOneAndUpdate(
+      { empId: empId, Date: date },
+      { logout: logoutTime },
+      { new: true }
+    );
+    if (updatedRecord) {
+      const attendanceData = updatedRecord.toObject();
+      delete attendanceData._id;
+      delete attendanceData.__v;
+      delete attendanceData.createdAt;
+      delete attendanceData.updatedAt;
+      res.status(200).json({ message: 'Logout time updated successfully.', updatedRecord: attendanceData });
+    } else {
+      res.status(404).json({ message: 'Attendance record not found for today. Ensure login was recorded.' });
+    }
+  } catch (error) {
+    console.error('Error updating attendance logout:', error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-app.post('/task_assigned/:empId', (req, res) => {
-  const empId = req.params.empId;
-  const { task, description, date, assignedTime, priority } = req.body;
-
-  if (!task || !description || !date || !assignedTime || !priority) {
-    return res.status(400).json({ message: "Missing required fields: task, description, date, assignedTime, priority" });
+app.get('/emp_attendance/:Date/:empID', async (req, res) => {
+  try {
+    const empIDParam = req.params.empID;
+    const dateParam = req.params.Date;
+    const matchedRecords = await Attendance.find({
+      empId: { $regex: new RegExp(`^${empIDParam}$`, 'i') },
+      Date: dateParam
+    });
+    if (matchedRecords.length > 0) {
+      const cleanedData = matchedRecords.map(record => {
+        const recordData = record.toObject();
+        delete recordData._id;
+        delete recordData.__v;
+        delete recordData.createdAt;
+        delete recordData.updatedAt;
+        return recordData;
+      });
+      res.json(cleanedData);
+    } else {
+      res.status(404).json({ message: "No attendance found for the given date and employee ID" });
+    }
+  } catch (error) {
+    console.error('Error fetching attendance by date and empID:', error);
+    res.status(500).json({ message: "Server error" });
   }
-
-  const maxId = task_assigned.reduce((max, t) => {
-    const idNum = parseInt(t.taskId?.replace('T', '') || 0);
-    return idNum > max ? idNum : max;
-  }, 0);
-
-  const newTaskId = `T${(maxId + 1).toString().padStart(3, '0')}`;
-
-  const newTask = {
-    taskId: newTaskId,
-    empId,
-    task,
-    description,
-    date,
-    assignedTime,
-    priority,
-    status: "Pending"
-  };
-
-  task_assigned.push(newTask);
-  console.log('Backend: New task assigned:', newTask);
-  res.status(201).json({ message: "Task added successfully", task: newTask });
 });
 
-// Project Updates Route
+app.get('/emp_attendance/:Date/:name', async (req, res) => {
+  try {
+    const DateQuery = req.params.Date;
+    const nameQuery = req.params.name;
+    const entry = await Attendance.findOne({
+      Date: DateQuery,
+      name: { $regex: new RegExp(`^${nameQuery}$`, 'i') }
+    });
+    if (!entry) {
+      return res.status(404).json({ error: "No matching record found" });
+    }
+    const attendanceData = entry.toObject();
+    delete attendanceData._id;
+    delete attendanceData.__v;
+    delete attendanceData.createdAt;
+    delete attendanceData.updatedAt;
+    res.json(attendanceData);
+  } catch (error) {
+    console.error('Error fetching attendance by date and name:', error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.get('/emp_attendance', async (req, res) => {
+  try {
+    const attendance = await Attendance.find({});
+    const cleanedData = attendance.map(record => {
+      const recordData = record.toObject();
+      delete recordData._id;
+      delete recordData.__v;
+      delete recordData.createdAt;
+      delete recordData.updatedAt;
+      return recordData;
+    });
+    res.json(cleanedData);
+  } catch (error) {
+    console.error('Error fetching all attendance:', error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get('/emp_attendance/:Date', async (req, res) => {
+  try {
+    const att_date = req.params.Date;
+    const filtered_emp_attendance = await Attendance.find({ Date: att_date });
+    const cleanedData = filtered_emp_attendance.map(record => {
+      const recordData = record.toObject();
+      delete recordData._id;
+      delete recordData.__v;
+      delete recordData.createdAt;
+      delete recordData.updatedAt;
+      return recordData;
+    });
+    res.json(cleanedData);
+  } catch (error) {
+    console.error('Error fetching attendance by date:', error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post('/emp_attendance', async (req, res) => {
+  try {
+    const newEntry = req.body;
+    const exists = await Attendance.findOne({ empId: newEntry.empId, Date: newEntry.Date });
+    if (exists) {
+      return res.status(400).json({ message: "Attendance already marked for today." });
+    }
+    newEntry.logout = "";
+    const attendance = new Attendance(newEntry);
+    await attendance.save();
+    const attendanceData = attendance.toObject();
+    delete attendanceData._id;
+    delete attendanceData.__v;
+    delete attendanceData.createdAt;
+    delete attendanceData.updatedAt;
+    res.status(201).json({ message: "Attendance marked.", data: attendanceData });
+  } catch (error) {
+    console.error('Error adding attendance:', error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+app.get('/management_data', async (req, res) => {
+  try {
+    const management = await Management.find({});
+    const cleanedData = management.map(mgmt => {
+      const mgmtData = mgmt.toObject();
+      delete mgmtData._id;
+      delete mgmtData.__v;
+      delete mgmtData.createdAt;
+      delete mgmtData.updatedAt;
+      return mgmtData;
+    });
+    res.json(cleanedData);
+  } catch (error) {
+    console.error('Error fetching management data:', error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get('/task_assigned/:empID', async (req, res) => {
+  try {
+    const emp_ID = req.params.empID;
+    const filtered_emp_tasks = await Task.find({
+      empId: { $regex: new RegExp(`^${emp_ID}$`, 'i') }
+    });
+    if (filtered_emp_tasks.length === 0) {
+      return res.status(404).json({ message: "No tasks found for this Employee ID" });
+    }
+    const cleanedData = filtered_emp_tasks.map(task => {
+      const taskData = task.toObject();
+      delete taskData._id;
+      delete taskData.__v;
+      delete taskData.createdAt;
+      delete taskData.updatedAt;
+      return taskData;
+    });
+    res.json(cleanedData);
+  } catch (error) {
+    console.error('Error fetching tasks by empID:', error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get('/task_assigned', async (req, res) => {
+  try {
+    const tasks = await Task.find({});
+    const cleanedData = tasks.map(task => {
+      const taskData = task.toObject();
+      delete taskData._id;
+      delete taskData.__v;
+      delete taskData.createdAt;
+      delete taskData.updatedAt;
+      return taskData;
+    });
+    res.json(cleanedData);
+  } catch (error) {
+    console.error('Error fetching all tasks:', error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.put('/task_assigned/:taskId', async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { task, date, assignedTime, priority, description } = req.body;
+    const updateData = {};
+    if (task) updateData.task = task;
+    if (date) updateData.date = date;
+    if (assignedTime) updateData.assignedTime = assignedTime;
+    if (priority) updateData.priority = priority;
+    if (description) updateData.description = description;
+    const updatedTask = await Task.findOneAndUpdate(
+      { taskId: taskId },
+      updateData,
+      { new: true }
+    );
+    if (!updatedTask) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+    const taskData = updatedTask.toObject();
+    delete taskData._id;
+    delete taskData.__v;
+    delete taskData.createdAt;
+    delete taskData.updatedAt;
+    res.json({ message: 'Task updated successfully', updatedTask: taskData });
+  } catch (error) {
+    console.error('Error updating task:', error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.delete('/task_assigned/:task', async (req, res) => {
+  try {
+    const taskName = req.params.task;
+    const result = await Task.deleteMany({
+      task: { $regex: new RegExp(`^${taskName}$`, 'i') }
+    });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+    res.json({ message: "Task(s) deleted successfully", deletedTask: taskName });
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.patch('/task_assigned/:taskId', async (req, res) => {
+  try {
+    const taskId = req.params.taskId;
+    const { status } = req.body;
+    const updatedTask = await Task.findOneAndUpdate(
+      { taskId: taskId },
+      { status: status },
+      { new: true }
+    );
+    if (updatedTask) {
+      const taskData = updatedTask.toObject();
+      delete taskData._id;
+      delete taskData.__v;
+      delete taskData.createdAt;
+      delete taskData.updatedAt;
+      res.json(taskData);
+    } else {
+      res.status(404).json({ message: 'Task not found' });
+    }
+  } catch (error) {
+    console.error('Error updating task status:', error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post('/task_assigned/:empId', async (req, res) => {
+  try {
+    const empId = req.params.empId;
+    const { task, description, date, assignedTime, priority } = req.body;
+    if (!task || !description || !date || !assignedTime || !priority) {
+      return res.status(400).json({ message: "Missing required fields: task, description, date, assignedTime, priority" });
+    }
+    const lastTask = await Task.findOne({}, {}, { sort: { 'taskId': -1 } });
+    let maxId = 0;
+    if (lastTask && lastTask.taskId) {
+      maxId = parseInt(lastTask.taskId.replace('T', '')) || 0;
+    }
+    const newTaskId = `T${(maxId + 1).toString().padStart(3, '0')}`;
+    const newTask = new Task({
+      taskId: newTaskId,
+      empId,
+      task,
+      description,
+      date,
+      assignedTime,
+      priority,
+      status: "Pending"
+    });
+    await newTask.save();
+    const taskData = newTask.toObject();
+    delete taskData._id;
+    delete taskData.__v;
+    delete taskData.createdAt;
+    delete taskData.updatedAt;
+    res.status(201).json({ message: "Task added successfully", task: taskData });
+  } catch (error) {
+    console.error('Error adding task:', error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 const projectUpdatesData = [
   { title: "Sprint Review", description: "Upcoming sprint review on July 5th.", date: "05-07-2025" },
   { title: "Feature Deployment", description: "New feature 'Task Prioritization' deployed to staging.", date: "03-07-2025" },
@@ -299,50 +448,62 @@ const projectUpdatesData = [
   { title: "Bug Fixes", description: "Critical bug fixes rolled out in production.", date: "01-07-2025" },
   { title: "New Employee Onboarding", description: "Welcome new team members joining next week!", date: "02-07-2025" },
 ];
+
 app.get('/project_updates', (req, res) => {
   res.json(projectUpdatesData);
 });
 
+app.get('/payroll_data', async (req, res) => {
+  try {
+    const payroll = await Payroll.find({});
+    const cleanedData = payroll.map(pay => {
+      const payData = pay.toObject();
+      delete payData._id;
+      delete payData.__v;
+      delete payData.createdAt;
+      delete payData.updatedAt;
+      return payData;
+    });
+    res.json(cleanedData);
+  } catch (error) {
+    console.error('Error fetching payroll data:', error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
-// --- Error Handling Middleware ---
-// This MUST be the last middleware added to the Express app.
+app.patch('/payroll_data/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    if (!status) {
+      return res.status(400).json({ message: 'Missing status in request body.' });
+    }
+    const updatedPayroll = await Payroll.findOneAndUpdate(
+      { empId: { $regex: new RegExp(`^${id}$`, 'i') } },
+      { status: status },
+      { new: true }
+    );
+    if (updatedPayroll) {
+      const payrollData = updatedPayroll.toObject();
+      delete payrollData._id;
+      delete payrollData.__v;
+      delete payrollData.createdAt;
+      delete payrollData.updatedAt;
+      res.status(200).json({ message: 'Payroll status updated successfully', updatedRecord: payrollData });
+    } else {
+      res.status(404).json({ message: 'Payroll record not found.' });
+    }
+  } catch (error) {
+    console.error('Error updating payroll:', error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error('Unhandled server error:', err.stack);
   res.status(500).json({ message: 'Something broke on the server!', error: err.message });
 });
 
-
-let payroll_data = require('./payroll_data');
-
-// NEW: Payroll Data Routes
-app.get('/payroll_data', (req, res) => {
-  res.json(payroll_data);
-});
-app.patch('/payroll_data/:id', (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-
-  if (!status) {
-    return res.status(400).json({ message: 'Missing status in request body.' });
-  }
-
-  console.log('Received PATCH request for ID:', id);
-  console.log('Current payroll_data:', payroll_data); // Add this line
-
-  const payrollIndex = payroll_data.findIndex(p => p.empId.toLowerCase() === id.toLowerCase());
-
-  if (payrollIndex !== -1) {
-    payroll_data[payrollIndex].status = status;
-    console.log(`Backend: Payroll for ${id} updated to status: ${status}`);
-    res.status(200).json({ message: 'Payroll status updated successfully', updatedRecord: payroll_data[payrollIndex] });
-  } else {
-    res.status(404).json({ message: 'Payroll record not found.' });
-  }
-});
-
-
-// --- Start the Server ---
-// This MUST be the very last statement in your server.js file.
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
 });
