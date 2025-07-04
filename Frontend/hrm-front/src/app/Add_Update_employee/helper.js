@@ -347,7 +347,7 @@ export default function Add_Update_employee() {
             <div className="relative flex flex-1 flex-col justify-start items-center overflow-auto p-4 dark:bg-neutral-900">
                 <div className={cn("relative z-10 w-full mb-8", styles.company_name)}>
                     <h1 className="text-2xl md:text-5xl lg:text-7xl font-bold text-center text-white relative z-2 font-sans">
-                        <ColourfulText text="Mahaveer Solutions" />
+                        <ColourfulText text="Mahaveer<br />Solutions" />
                     </h1>
                     <h1 className="text-xl md:text-3xl font-bold text-center text-white relative z-2 mt-4">
                         {isUpdateMode ? 'Update Employee Details' : 'Add New Employee'}
@@ -365,7 +365,8 @@ export default function Add_Update_employee() {
                     {statusMessage && (
                         <div className={cn(
                             "p-3 rounded-md mb-4 text-center",
-                            statusMessage.includes("successfully") ? "bg-green-600" : (statusMessage.includes("Error") || statusMessage.includes("not found") ? "bg-red-600" : "bg-blue-600")
+                            // Changed this line to always apply bg-green-600
+                            "bg-green-600"
                         )}>
                             {statusMessage}
                         </div>
